@@ -817,10 +817,11 @@
                         activeUntil[key] = session.endMin;
 
                         const roomId = `room${key}`;
+                        const cellContent = `<a href="#" onclick="event.preventDefault(); showTab({target: document.querySelector('.tab[onclick*=\\'${roomId}\\']')}, '${roomId}');">${session.topic}</a>`;
                         if (spanCount > 1) {
-                            row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}"><a href="#" onclick="event.preventDefault(); showTab(event, '${roomId}');">${session.topic}</a></td>`;
+                            row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}">${cellContent}</td>`;
                         } else {
-                            row.innerHTML += `<td class="session-cell ${cls}"><a href="#" onclick="event.preventDefault(); showTab(event, '${roomId}');">${session.topic}</a></td>`;
+                            row.innerHTML += `<td class="session-cell ${cls}">${cellContent}</td>`;
                         }
                     } else {
                         row.innerHTML += `<td class="session-cell">-</td>`;
@@ -879,31 +880,29 @@
             if (!input) return;
 
             async function doSearch(term) {
-                // Store current search term
-                currentSearchTerm = term;
-                
-                // Clear previous results and highlights
+                // Clear previous results
                 clearHighlights();
                 resultsEl.innerHTML = '';
                 resultsEl.style.display = 'none';
                 countEl.textContent = '0';
 
-                if (!term || term.length < 1) {
-                    document.querySelectorAll('.view-content').forEach(view => {
-                        clearHighlightsInElement(view);
-                    });
-                    return;
-                }
+                // Exit if empty search
+                if (!term || term.length < 1) return;
+
+                const lowerTerm = term.toLowerCase();
 
                 if (allCheckbox && allCheckbox.checked) {
-                    // Search across all room files (fetch and parse schedule-items)
+                    // Search across all room files
                     const matches = [];
-                    const maxSnippetLen = 70;
+                    const maxSnippetLen = 100;
+
+                    // Load and search each room in parallel
                     await Promise.all(Object.keys(rooms).map(async key => {
                         try {
                             const doc = await fetchRoomDoc(key);
                             if (!doc) return;
-                            const items = doc.querySelectorAll('.schedule-item');
+
+                            const items = Array.from(doc.querySelectorAll('.schedule-item'));
                             items.forEach(item => {
                                 const timeEl = item.querySelector('.time');
                                 const topicEl = item.querySelector('.topic');
@@ -1006,31 +1005,43 @@
                     resultsEl.style.display = 'block';
                 }
 
+            // Debounced search handler
+            let searchTimeout = null;
             input.addEventListener('input', function(e) {
                 const searchTerm = e.target.value.trim();
                 
-                // Clear previous timer
-                if (searchDebounceTimer) {
-                    clearTimeout(searchDebounceTimer);
+                // Clear any pending search
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
                 }
                 
                 // Clear results if empty search
                 if (!searchTerm) {
-                    document.getElementById('searchResults').style.display = 'none';
-                    document.getElementById('searchCount').textContent = '0';
+                    resultsEl.style.display = 'none';
+                    countEl.textContent = '0';
                     clearHighlights();
                     return;
                 }
                 
-                // Set new timer
-                searchDebounceTimer = setTimeout(() => {
+                // Debounce search
+                searchTimeout = setTimeout(() => {
                     doSearch(searchTerm);
-                }, 220);
+                }, 300);
             });
 
-            // Initialize search if there's already a value
+            // Initialize search if there's an initial value
             if (input.value.trim()) {
                 doSearch(input.value.trim());
+            }
+
+            // Update search when checkbox changes
+            if (allCheckbox) {
+                allCheckbox.addEventListener('change', () => {
+                    const currentTerm = input.value.trim();
+                    if (currentTerm) {
+                        doSearch(currentTerm);
+                    }
+                });
             }
         }
 
@@ -1058,26 +1069,37 @@
 
         function highlightText(element, searchTerm) {
             if (!element || !searchTerm) return;
-
+            
+            // Reset any existing highlights first
+            clearHighlightsInElement(element);
+            
             const walker = document.createTreeWalker(
                 element,
                 NodeFilter.SHOW_TEXT,
-                null,
+                {
+                    acceptNode: function(node) {
+                        return node.parentNode.nodeName !== 'SCRIPT' && 
+                               !node.parentNode.classList?.contains('highlight') 
+                               ? NodeFilter.FILTER_ACCEPT 
+                               : NodeFilter.FILTER_REJECT;
+                    }
+                },
                 false
             );
 
             const nodesToReplace = [];
             let node;
+            const termLower = searchTerm.toLowerCase();
 
             while (node = walker.nextNode()) {
-                if (node.nodeValue && node.nodeValue.toLowerCase().includes(searchTerm.toLowerCase())) {
+                if (node.nodeValue && node.nodeValue.toLowerCase().includes(termLower)) {
                     nodesToReplace.push(node);
                 }
             }
 
             nodesToReplace.forEach(textNode => {
                 const parent = textNode.parentNode;
-                if (!parent || parent.classList?.contains('highlight')) return;
+                if (!parent) return;
 
                 const text = textNode.nodeValue;
                 const regex = new RegExp(escapeRegExp(searchTerm), 'gi');
