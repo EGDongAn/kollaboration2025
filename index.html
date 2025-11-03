@@ -853,7 +853,7 @@
                         activeUntil[key] = session.endMin;
 
                         const roomId = `room${key}`;
-                        const cellContent = `<a href="#" data-room="${key}" class="timeline-cell-link">${session.topic}</a>`;
+                        const cellContent = `<a href="#" data-room="${key}" data-time="${session.timeRange}" class="timeline-cell-link">${session.topic}</a>`;
                         if (spanCount > 1) {
                             row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}">${cellContent}</td>`;
                         } else {
@@ -868,16 +868,29 @@
             });
 
             // Add event delegation for timeline cell clicks
-            tbody.addEventListener('click', function(e) {
+            tbody.addEventListener('click', async function(e) {
                 const link = e.target.closest('.timeline-cell-link');
                 if (link) {
                     e.preventDefault();
                     const roomKey = link.getAttribute('data-room');
+                    const timeRange = link.getAttribute('data-time');
+
                     if (roomKey) {
                         const roomId = `room${roomKey}`;
                         const tab = document.querySelector(`.tab[data-tab="${roomId}"]`);
                         if (tab) {
+                            // Switch to the room tab
                             showTab({ target: tab }, roomId);
+
+                            // Wait for room content to load
+                            await loadRoomContent(roomKey);
+
+                            // Scroll to the specific session
+                            if (timeRange) {
+                                setTimeout(() => {
+                                    scrollToSession(roomKey, timeRange);
+                                }, 300);
+                            }
                         }
                     }
                 }
@@ -1215,6 +1228,39 @@
                 setTimeout(() => {
                     element.style.backgroundColor = '';
                 }, 2000);
+            }
+        }
+
+        // Scroll to a specific session in a room by time
+        function scrollToSession(roomKey, timeRange) {
+            const roomView = document.getElementById(`room${roomKey}View`);
+            if (!roomView) return;
+
+            // Find all schedule items in the room
+            const items = roomView.querySelectorAll('.schedule-item');
+            let targetItem = null;
+
+            // Search for matching time range
+            for (const item of items) {
+                const timeEl = item.querySelector('.time');
+                if (timeEl && timeEl.textContent.trim() === timeRange.trim()) {
+                    targetItem = item;
+                    break;
+                }
+            }
+
+            // Scroll to the target item
+            if (targetItem) {
+                targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Add temporary highlight effect
+                const originalBg = targetItem.style.backgroundColor;
+                targetItem.style.transition = 'background-color 0.5s';
+                targetItem.style.backgroundColor = '#fff3d0';
+
+                setTimeout(() => {
+                    targetItem.style.backgroundColor = originalBg;
+                }, 2500);
             }
         }
 
