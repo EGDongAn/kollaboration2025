@@ -473,7 +473,7 @@
         <!-- View Toggle (only for All Rooms) -->
         <div class="view-toggle" id="viewToggle" style="display: flex;">
             <button class="active" onclick="switchView(event, 'timeline')">🕐 Timeline View</button>
-            <button onclick="switchView(event, 'detailed')">📋 Detailed View</button>
+            <button onclick="openDetailedView(event)">📋 Detailed View</button>
         </div>
 
         <!-- Content -->
@@ -501,13 +501,7 @@
                 </div>
             </div>
 
-            <!-- All Rooms Detailed View -->
-            <div id="detailedView" class="view-content">
-                <h2 style="margin-bottom: 20px; color: #667eea;">Detailed Schedule</h2>
-                <div id="detailedContent">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
+
 
             <!-- Individual Room Views -->
             <div id="roomAView" class="view-content"></div>
@@ -536,6 +530,14 @@
 
         let currentTab = 'all';
         let currentView = 'timeline';
+
+        // Open detailed view in popup
+        function openDetailedView(e) {
+            e.preventDefault();
+            // Open popup window with specific size and features
+            window.open('https://www.kollaboration.net/html/', 'DetailedView',
+                'width=1024,height=800,resizable=yes,scrollbars=yes,status=yes');
+        }
 
         // Tab switching
         function showTab(e, tab) {
@@ -571,9 +573,6 @@
 
             if (view === 'timeline') {
                 showView('timelineView');
-            } else {
-                showView('detailedView');
-                loadAllRoomsDetailed();
             }
         }
 
@@ -1049,6 +1048,20 @@
             });
         }
 
+        // Scroll to a specific room in the timeline
+        function scrollToRoom(room) {
+            const element = document.getElementById(`room${room}Timeline`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Add a temporary highlight effect
+                element.style.transition = 'background-color 0.5s';
+                element.style.backgroundColor = '#ffffd0';
+                setTimeout(() => {
+                    element.style.backgroundColor = '';
+                }, 2000);
+            }
+        }
+
         // Render timeline warnings into the UI
         function renderTimelineWarnings() {
             try {
@@ -1066,7 +1079,8 @@
                 timelineParseWarnings.forEach(w => {
                     const row = document.createElement('div');
                     row.style.padding = '6px 0';
-                    row.innerHTML = `<strong>Room ${w.room}</strong>: ${escapeHtml(w.timeRange)} — ${escapeHtml(w.message)}`;
+                    const roomId = `room${w.room}Timeline`;
+                    row.innerHTML = `<a href="#${roomId}" onclick="scrollToRoom('${w.room}')"><strong>Room ${w.room}</strong></a>: ${escapeHtml(w.timeRange)} — ${escapeHtml(w.message)}`;
                     list.appendChild(row);
                 });
 

@@ -1,0 +1,13 @@
+// Scroll to a specific room in the timeline
+        function scrollToRoom(room) {
+            const element = document.getElementById(`room${room}Timeline`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Add a temporary highlight effect
+                element.style.transition = 'background-color 0.5s';
+                element.style.backgroundColor = '#ffffd0';
+                setTimeout(() => {
+                    element.style.backgroundColor = '';
+                }, 2000);
+            }
+        }
