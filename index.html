@@ -564,6 +564,11 @@
 
         // Tab switching
         function showTab(e, tab) {
+            if (!e || !e.target) {
+                console.error('Invalid event object passed to showTab');
+                return;
+            }
+
             currentTab = tab;
 
             // Update tab UI
@@ -576,8 +581,6 @@
                 viewToggle.style.display = 'flex';
                 if (currentView === 'timeline') {
                     showView('timelineView');
-                } else {
-                    showView('detailedView');
                 }
             } else {
                 viewToggle.style.display = 'none';
@@ -817,7 +820,8 @@
                         activeUntil[key] = session.endMin;
 
                         const roomId = `room${key}`;
-                        const cellContent = `<a href="#" onclick="event.preventDefault(); showTab({target: document.querySelector('.tab[onclick*=\\'${roomId}\\']')}, '${roomId}');">${session.topic}</a>`;
+                        const tabSelector = `.tab[onclick*="showTab(event, 'room${key}')"]`;
+                        const cellContent = `<a href="#" onclick="event.preventDefault(); const tab = document.querySelector('${tabSelector}'); if(tab) showTab({target: tab}, '${roomId}');">${session.topic}</a>`;
                         if (spanCount > 1) {
                             row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}">${cellContent}</td>`;
                         } else {
