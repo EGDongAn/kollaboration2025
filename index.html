@@ -441,8 +441,17 @@
         <!-- Search Bar -->
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="🔍 Search topics, speakers, or time..." />
+            <label style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="searchAllCheckbox" />
+                <span style="font-size:0.9em; color:#666;">All rooms</span>
+            </label>
             <button class="clear-btn" onclick="clearSearch()">Clear</button>
+            <div id="searchStatus" style="font-size:0.9em; color:#666; margin-left:8px;">Results: <span id="searchCount">0</span></div>
         </div>
+        <div id="searchResults" style="padding:8px 0 16px; color:#222; display:none;
+            max-height:220px; overflow:auto;
+            font-size:0.95em;
+        "></div>
 
         <!-- Tabs -->
         <div class="tabs">
@@ -652,81 +661,77 @@
             }
         }
 
-        // Generate timeline table
-        function generateTimeline() {
-            const times = [
-                '08:30 - 08:50', '08:50 - 09:00', '09:00 - 09:50', '09:50 - 10:15',
-                '10:15 - 11:15', '11:15 - 11:25', '11:25 - 12:25', '12:25 - 13:20',
-                '13:20 - 14:20', '14:20 - 14:35', '14:35 - 15:50', '15:35 - 15:50',
-                '15:50 - 16:55', '16:50 - 16:55'
-            ];
+        // Generate timeline table by parsing each room's schedule file so times are accurate per room
+        async function generateTimeline() {
+            const roomKeys = ['A','B','C','D','E','F'];
+            const roomSessions = {};
 
-            // Simplified timeline data
-            const schedule = {
-                '08:30 - 08:50': { all: 'Registration' },
-                '08:50 - 09:00': { all: 'Opening Remark' },
-                '09:00 - 10:00': {
-                    A: 'Session I: Filler Procedures',
-                    B: 'Session I: Thread Lifting Journey',
-                    C: 'Session I: Beauty Knowledge',
-                    D: 'Session I: Primary Care Fundamentals',
-                    E: 'Session I: Aesthetic Energy Core',
-                    F: 'Facial Nerve Anesthesia & Melasma'
-                },
-                '10:00 - 10:40': { all: 'Coffee Break' },
-                '10:40 - 12:00': {
-                    A: 'Session II: Face Perfected by Filler',
-                    B: 'Session II: Same Materials, New Techniques',
-                    C: 'Session II: Transformation Results',
-                    D: 'Session II: Expanding Primary Care I',
-                    E: 'Session II: Light, Heat, Energy',
-                    F: 'Pigmentation Treatment Strategy'
-                },
-                '12:00 - 13:20': { all: 'Lunch Symposium' },
-                '13:20 - 14:20': {
-                    A: 'Session IV: Collagen & Botox',
-                    B: 'Session IV: Youth-Focused Midface',
-                    C: 'Session IV: Brand New Procedures',
-                    D: 'Session III: Pain Management',
-                    E: 'Session IV: Energy Devices Innovation',
-                    F: 'Thread Lifting & Botulinum Toxin'
-                },
-                '14:20 - 15:00': {
-                    A: 'Coffee Break',
-                    B: 'Coffee Break',
-                    C: 'Session V: Back to Basics',
-                    D: 'Coffee Break',
-                    E: 'Session V: Aesthetic Energy Frontier',
-                    F: 'Skin FAQs & Practice'
-                },
-                '15:00 - 16:50': {
-                    A: 'Sessions V & VI',
-                    B: 'Sessions V & VI',
-                    C: 'Session VI: New Trends',
-                    D: 'Session IV: Primary Care II',
-                    E: 'Session VI: Skin & Energy Principles',
-                    F: 'Skin Booster & Filler Safety'
-                },
-                '16:50 - 16:55': { all: 'Ending Remark' }
-            };
+            // Fetch and parse each room file in parallel
+            await Promise.all(roomKeys.map(async key => {
+                roomSessions[key] = [];
+                try {
+                    const resp = await fetch(rooms[key].file);
+                    if (!resp.ok) return;
+                    const html = await resp.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const items = doc.querySelectorAll('.schedule-item');
+                    items.forEach(item => {
+                        const timeEl = item.querySelector('.time');
+                        if (!timeEl) return;
+                        const timeRange = timeEl.textContent.trim();
+                        // Prefer .topic innerHTML if present to keep markup like <strong>
+                        const topicEl = item.querySelector('.topic');
+                        const topic = topicEl ? topicEl.innerHTML.trim() : item.textContent.trim();
+                        const isBreak = item.classList.contains('break');
+                        const isSymposium = item.classList.contains('symposium') || /lunch symposium/i.test(topic);
+
+                        roomSessions[key].push({ timeRange, topic, isBreak, isSymposium });
+                    });
+                } catch (err) {
+                    console.error('Error loading room for timeline:', key, err);
+                }
+            }));
+
+            // Build a sorted list of unique time ranges across all rooms
+            const timeSet = new Set();
+            Object.values(roomSessions).flat().forEach(s => timeSet.add(s.timeRange));
+            const times = Array.from(timeSet);
+
+            function toMinutes(t) {
+                // t is like '08:30 - 08:50'
+                const parts = t.split('-').map(p => p.trim());
+                const [h, m] = parts[0].split(':').map(Number);
+                return h * 60 + m;
+            }
+
+            times.sort((a, b) => {
+                const sa = toMinutes(a);
+                const sb = toMinutes(b);
+                if (sa !== sb) return sa - sb;
+                // tie-breaker by end time
+                const ea = a.split('-').map(p => p.trim())[1].split(':').map(Number);
+                const eb = b.split('-').map(p => p.trim())[1].split(':').map(Number);
+                return (ea[0]*60 + ea[1]) - (eb[0]*60 + eb[1]);
+            });
 
             const tbody = document.getElementById('timelineBody');
             tbody.innerHTML = '';
 
-            Object.entries(schedule).forEach(([time, content]) => {
+            times.forEach(time => {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td class="time-cell">${time}</td>`;
 
-                if (content.all) {
-                    const isBreak = content.all.includes('Coffee') || content.all.includes('Registration');
-                    const isSymposium = content.all.includes('Symposium');
-                    row.innerHTML += `<td colspan="6" class="session-cell ${isBreak ? 'break' : ''} ${isSymposium ? 'symposium' : ''}" style="text-align: center;">${content.all}</td>`;
-                } else {
-                    ['A', 'B', 'C', 'D', 'E', 'F'].forEach(room => {
-                        const sessionText = content[room] || '-';
-                        row.innerHTML += `<td class="session-cell">${sessionText}</td>`;
-                    });
-                }
+                roomKeys.forEach(key => {
+                    const session = (roomSessions[key] || []).find(s => s.timeRange === time);
+                    if (session) {
+                        const cls = session.isBreak ? 'break' : (session.isSymposium ? 'symposium' : '');
+                        row.innerHTML += `<td class="session-cell ${cls}">${session.topic}</td>`;
+                    } else {
+                        row.innerHTML += `<td class="session-cell">-</td>`;
+                    }
+                });
 
                 tbody.appendChild(row);
             });
@@ -735,25 +740,175 @@
         // Search functionality
         let highlightedElements = [];
 
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.trim().toLowerCase();
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
-            clearHighlights();
+        // simple cache for fetched room documents to avoid refetching during rapid searches
+        const roomDocCache = {};
 
-            if (!searchTerm || searchTerm.length < 2) {
-                return;
+        async function fetchRoomDoc(key) {
+            if (roomDocCache[key]) return roomDocCache[key];
+            try {
+                const resp = await fetch(rooms[key].file);
+                if (!resp.ok) return null;
+                const html = await resp.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                roomDocCache[key] = doc;
+                return doc;
+            } catch (err) {
+                console.error('fetchRoomDoc error', key, err);
+                return null;
+            }
+        }
+
+        function initSearch() {
+            const input = document.getElementById('searchInput');
+            const allCheckbox = document.getElementById('searchAllCheckbox');
+            const resultsEl = document.getElementById('searchResults');
+            const countEl = document.getElementById('searchCount');
+            if (!input) return;
+
+            // debounce helper
+            function debounce(fn, delay) {
+                let t;
+                return (...args) => {
+                    clearTimeout(t);
+                    t = setTimeout(() => fn(...args), delay);
+                };
             }
 
-            // Search in current view
-            const activeView = document.querySelector('.view-content.active');
-            if (!activeView) return;
+            async function doSearch(term) {
+                clearHighlights();
+                resultsEl.innerHTML = '';
+                resultsEl.style.display = 'none';
+                countEl.textContent = '0';
 
-            const content = activeView.textContent.toLowerCase();
+                if (!term || term.length < 1) return;
 
-            if (content.includes(searchTerm)) {
-                highlightText(activeView, searchTerm);
+                if (allCheckbox && allCheckbox.checked) {
+                    // Search across all room files (fetch and parse schedule-items)
+                    const matches = [];
+                    const maxSnippetLen = 70;
+                    await Promise.all(Object.keys(rooms).map(async key => {
+                        try {
+                            const doc = await fetchRoomDoc(key);
+                            if (!doc) return;
+                            const items = doc.querySelectorAll('.schedule-item');
+                            items.forEach(item => {
+                                const timeEl = item.querySelector('.time');
+                                const topicEl = item.querySelector('.topic');
+                                if (!timeEl) return;
+                                const fullText = item.textContent.trim();
+                                const lower = fullText.toLowerCase();
+                                const idx = lower.indexOf(term.toLowerCase());
+                                if (idx !== -1) {
+                                    // build a snippet around the match
+                                    const start = Math.max(0, idx - Math.floor(maxSnippetLen / 2));
+                                    const end = Math.min(fullText.length, idx + term.length + Math.floor(maxSnippetLen / 2));
+                                    let prefix = fullText.substring(start, idx);
+                                    let matchTxt = fullText.substring(idx, idx + term.length);
+                                    let suffix = fullText.substring(idx + term.length, end);
+                                    if (start > 0) prefix = '...' + prefix;
+                                    if (end < fullText.length) suffix = suffix + '...';
+
+                                    matches.push({
+                                        room: key,
+                                        time: timeEl.textContent.trim(),
+                                        topic: topicEl ? topicEl.textContent.trim() : '',
+                                        snippetParts: { prefix, matchTxt, suffix }
+                                    });
+                                }
+                            });
+                        } catch (err) {
+                            console.error('Search fetch error for', key, err);
+                        }
+                    }));
+
+                    // render results and auto-load + highlight rooms
+                    if (matches.length > 0) {
+                        resultsEl.style.display = 'block';
+
+                        // group matches by room for loading
+                        const byRoom = {};
+                        matches.forEach(m => { byRoom[m.room] = byRoom[m.room] || []; byRoom[m.room].push(m); });
+
+                        // auto-load each matching room and highlight inside it
+                        await Promise.all(Object.keys(byRoom).map(async roomKey => {
+                            try {
+                                await loadRoomContent(roomKey);
+                                const view = document.getElementById(`room${roomKey}View`);
+                                if (view) {
+                                    // highlight all matches for this room
+                                    highlightText(view, term);
+                                }
+                            } catch (e) {
+                                console.error('Error loading/highlighting room', roomKey, e);
+                            }
+                        }));
+
+                        // render clickable results with snippets
+                        matches.forEach(m => {
+                            const el = document.createElement('div');
+                            el.style.padding = '8px 12px';
+                            el.style.borderBottom = '1px solid #eee';
+                            el.style.cursor = 'pointer';
+                            const snippetHtml = `${escapeHtml(m.snippetParts.prefix)}<span class="highlight">${escapeHtml(m.snippetParts.matchTxt)}</span>${escapeHtml(m.snippetParts.suffix)}`;
+                            el.innerHTML = `<strong>Room ${m.room}</strong> — <em>${m.time}</em>: ${snippetHtml}`;
+                            el.addEventListener('click', () => {
+                                // open the relevant room view
+                                const tabEl = document.querySelector(`.tab[onclick*="room${m.room}"]`);
+                                if (tabEl) showTab({ target: tabEl }, `room${m.room}`);
+                                // scroll to the highlighted element in that view if present
+                                setTimeout(() => {
+                                    const view = document.getElementById(`room${m.room}View`);
+                                    if (view) {
+                                        const firstHl = view.querySelector('.highlight');
+                                        if (firstHl) firstHl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                }, 300);
+                            });
+                            resultsEl.appendChild(el);
+                        });
+                    }
+
+                    countEl.textContent = matches.length;
+                    return;
+                }
+
+                // Search only in current view
+                const activeView = document.querySelector('.view-content.active');
+                if (!activeView) return;
+
+                const content = activeView.textContent.toLowerCase();
+                if (content.includes(term.toLowerCase())) {
+                    highlightText(activeView, term);
+                    // count highlights
+                    const count = highlightedElements.length || (activeView.querySelectorAll('.highlight') || []).length;
+                    countEl.textContent = count;
+                } else {
+                    countEl.textContent = '0';
+                }
             }
-        });
+
+            const debounced = debounce(doSearch, 220);
+
+            input.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.trim();
+                // clear previous results display quickly if empty
+                if (!searchTerm) {
+                    document.getElementById('searchResults').style.display = 'none';
+                    document.getElementById('searchCount').textContent = '0';
+                }
+                debounced(searchTerm);
+            });
+        }
 
         function clearSearch() {
             document.getElementById('searchInput').value = '';
@@ -823,6 +978,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             generateTimeline();
+            initSearch();
         });
     </script>
 </body>
