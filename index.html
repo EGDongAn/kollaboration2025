@@ -438,6 +438,12 @@
     </div>
 
     <div class="container">
+        <!-- Timeline parsing warnings (hidden unless there are issues) -->
+        <div id="timelineWarningBanner" style="display:none; background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:12px 16px; border-radius:6px; margin-bottom:16px;">
+            <strong>Timeline parsing warnings:</strong>
+            <div id="timelineWarningList" style="margin-top:8px;"></div>
+            <div style="margin-top:8px; text-align:right;"><button id="dismissTimelineWarnings" style="background:transparent;border:none;color:#856404;cursor:pointer;font-weight:600;">Dismiss</button></div>
+        </div>
         <!-- Search Bar -->
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="🔍 Search topics, speakers, or time..." />
@@ -817,6 +823,9 @@
         // simple cache for fetched room documents to avoid refetching during rapid searches
         const roomDocCache = {};
 
+    // collect timeline parsing warnings to show in the UI
+    const timelineParseWarnings = [];
+
         async function fetchRoomDoc(key) {
             if (roomDocCache[key]) return roomDocCache[key];
             try {
@@ -1040,9 +1049,43 @@
             });
         }
 
+        // Render timeline warnings into the UI
+        function renderTimelineWarnings() {
+            try {
+                const banner = document.getElementById('timelineWarningBanner');
+                const list = document.getElementById('timelineWarningList');
+                const dismiss = document.getElementById('dismissTimelineWarnings');
+                if (!banner || !list) return;
+
+                if (!timelineParseWarnings || timelineParseWarnings.length === 0) {
+                    banner.style.display = 'none';
+                    return;
+                }
+
+                list.innerHTML = '';
+                timelineParseWarnings.forEach(w => {
+                    const row = document.createElement('div');
+                    row.style.padding = '6px 0';
+                    row.innerHTML = `<strong>Room ${w.room}</strong>: ${escapeHtml(w.timeRange)} — ${escapeHtml(w.message)}`;
+                    list.appendChild(row);
+                });
+
+                banner.style.display = 'block';
+
+                if (dismiss) {
+                    dismiss.addEventListener('click', () => {
+                        banner.style.display = 'none';
+                    });
+                }
+            } catch (e) {
+                console.error('renderTimelineWarnings error', e);
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            generateTimeline();
+            // generateTimeline is async — call and then render any warnings
+            generateTimeline().then(() => renderTimelineWarnings());
             initSearch();
         });
     </script>
