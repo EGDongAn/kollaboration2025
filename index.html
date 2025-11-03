@@ -853,8 +853,7 @@
                         activeUntil[key] = session.endMin;
 
                         const roomId = `room${key}`;
-                        const tabSelector = `.tab[onclick*="showTab(event, 'room${key}')"]`;
-                        const cellContent = `<a href="#" onclick="event.preventDefault(); const tab = document.querySelector('${tabSelector}'); if(tab) showTab({target: tab}, '${roomId}');">${session.topic}</a>`;
+                        const cellContent = `<a href="#" data-room="${key}" class="timeline-cell-link">${session.topic}</a>`;
                         if (spanCount > 1) {
                             row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}">${cellContent}</td>`;
                         } else {
@@ -866,6 +865,22 @@
                 });
 
                 tbody.appendChild(row);
+            });
+
+            // Add event delegation for timeline cell clicks
+            tbody.addEventListener('click', function(e) {
+                const link = e.target.closest('.timeline-cell-link');
+                if (link) {
+                    e.preventDefault();
+                    const roomKey = link.getAttribute('data-room');
+                    if (roomKey) {
+                        const roomId = `room${roomKey}`;
+                        const tab = document.querySelector(`.tab[data-tab="${roomId}"]`);
+                        if (tab) {
+                            showTab({ target: tab }, roomId);
+                        }
+                    }
+                }
             });
         }
 
