@@ -675,7 +675,6 @@
                     const html = await resp.text();
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
-
                     const items = doc.querySelectorAll('.schedule-item');
                     items.forEach(item => {
                         const timeEl = item.querySelector('.time');
@@ -687,7 +686,18 @@
                         const isBreak = item.classList.contains('break');
                         const isSymposium = item.classList.contains('symposium') || /lunch symposium/i.test(topic);
 
-                        roomSessions[key].push({ timeRange, topic, isBreak, isSymposium });
+                        // parse start and end
+                        const parts = timeRange.split('-').map(p => p.trim());
+                        const start = parts[0] || '';
+                        const end = parts[1] || start;
+                        const toMin = (t) => {
+                            const [hh, mm] = (t || '').split(':').map(s => parseInt(s, 10) || 0);
+                            return hh * 60 + mm;
+                        };
+                        const startMin = toMin(start);
+                        const endMin = toMin(end);
+
+                        roomSessions[key].push({ timeRange, topic, isBreak, isSymposium, startTime: start, endTime: end, startMin, endMin });
                     });
                 } catch (err) {
                     console.error('Error loading room for timeline:', key, err);
@@ -719,15 +729,40 @@
             const tbody = document.getElementById('timelineBody');
             tbody.innerHTML = '';
 
+            // Track active spans per room (until minute)
+            const activeUntil = {};
+
             times.forEach(time => {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td class="time-cell">${time}</td>`;
+                const currentMin = toMinutes(time);
 
                 roomKeys.forEach(key => {
+                    // if a previous session is spanning this time, skip cell (rowspan covers it)
+                    if (activeUntil[key] && currentMin < activeUntil[key]) {
+                        // do nothing, previous td has rowspan covering this row
+                        return row.innerHTML += '';
+                    }
+
+                    // find a session that starts at this time
                     const session = (roomSessions[key] || []).find(s => s.startTime === time);
                     if (session) {
                         const cls = session.isBreak ? 'break' : (session.isSymposium ? 'symposium' : '');
-                        row.innerHTML += `<td class="session-cell ${cls}">${session.topic}</td>`;
+                        // compute how many rows this session should span
+                        let spanCount = 0;
+                        for (let i = 0; i < times.length; i++) {
+                            const tMin = toMinutes(times[i]);
+                            if (tMin >= session.startMin && tMin < session.endMin) spanCount++;
+                        }
+                        if (spanCount <= 0) spanCount = 1;
+                        // mark active until end minute
+                        activeUntil[key] = session.endMin;
+
+                        if (spanCount > 1) {
+                            row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}">${session.topic}</td>`;
+                        } else {
+                            row.innerHTML += `<td class="session-cell ${cls}">${session.topic}</td>`;
+                        }
                     } else {
                         row.innerHTML += `<td class="session-cell">-</td>`;
                     }
