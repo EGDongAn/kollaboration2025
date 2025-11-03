@@ -686,16 +686,41 @@
                         const isBreak = item.classList.contains('break');
                         const isSymposium = item.classList.contains('symposium') || /lunch symposium/i.test(topic);
 
-                        // parse start and end
-                        const parts = timeRange.split('-').map(p => p.trim());
-                        const start = parts[0] || '';
-                        const end = parts[1] || start;
-                        const toMin = (t) => {
-                            const [hh, mm] = (t || '').split(':').map(s => parseInt(s, 10) || 0);
-                            return hh * 60 + mm;
-                        };
-                        const startMin = toMin(start);
-                        const endMin = toMin(end);
+                        // parse start and end with error handling
+                        let start = '';
+                        let end = '';
+                        let startMin = null;
+                        let endMin = null;
+                        try {
+                            const parts = timeRange.split('-').map(p => p.trim());
+                            if (!parts[0]) throw new Error('Missing start time');
+                            start = parts[0];
+                            end = parts[1] || start;
+
+                            const timeRegex = /^\d{1,2}:\d{2}$/;
+                            if (!timeRegex.test(start) || !timeRegex.test(end)) {
+                                throw new Error('Invalid time format');
+                            }
+
+                            const toMin = (t) => {
+                                const [hh, mm] = t.split(':').map(s => parseInt(s, 10));
+                                return (hh || 0) * 60 + (mm || 0);
+                            };
+
+                            startMin = toMin(start);
+                            endMin = toMin(end);
+                            if (endMin < startMin) {
+                                console.warn('Timeline: end time is before start time, adjusting to start', { room: key, timeRange });
+                                endMin = startMin;
+                            }
+                        } catch (err) {
+                            console.warn('Timeline: failed to parse timeRange for room', key, 'timeRange:', timeRange, 'error:', err && err.message ? err.message : err);
+                            // fallback: keep raw timeRange as startTime but don't set numeric minutes so it won't create rows
+                            start = timeRange;
+                            end = timeRange;
+                            startMin = null;
+                            endMin = null;
+                        }
 
                         roomSessions[key].push({ timeRange, topic, isBreak, isSymposium, startTime: start, endTime: end, startMin, endMin });
                     });
@@ -708,12 +733,17 @@
 
             // Use session start times (e.g. '08:30', '08:50', '09:00', ...) as the left timeline
             const timeSet = new Set();
-            // normalize sessions to include startTime
+            // normalize sessions to include startTime; only add valid numeric starts to timeline
             Object.values(roomSessions).forEach(list => {
                 list.forEach(s => {
-                    const start = s.timeRange.split('-')[0].trim();
+                    const start = s.startTime || (s.timeRange.split('-')[0] || '').trim();
                     s.startTime = start;
-                    timeSet.add(start);
+                    if (typeof s.startMin === 'number' && !isNaN(s.startMin)) {
+                        timeSet.add(start);
+                    } else {
+                        // log that this session won't be added to the left timeline due to invalid time parsing
+                        console.warn('Timeline: skipping invalid session time for timeline rows', { start: s.startTime, timeRange: s.timeRange });
+                    }
                 });
             });
             const times = Array.from(timeSet);
