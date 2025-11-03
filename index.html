@@ -1041,6 +1041,7 @@
                 if (parseInt(countEl.textContent) > 0) {
                     resultsEl.style.display = 'block';
                 }
+            }
 
             // Debounced search handler
             let searchTimeout = null;
@@ -1142,17 +1143,29 @@
                 const regex = new RegExp(escapeRegExp(searchTerm), 'gi');
 
                 const fragment = document.createDocumentFragment();
-                parts.forEach(part => {
-                    if (part.toLowerCase() === searchTerm.toLowerCase()) {
-                        const highlight = document.createElement('span');
-                        highlight.className = 'highlight';
-                        highlight.textContent = part;
-                        fragment.appendChild(highlight);
-                        highlightedElements.push(highlight);
-                    } else if (part) {
-                        fragment.appendChild(document.createTextNode(part));
+                let lastIndex = 0;
+                let match;
+
+                while ((match = regex.exec(text)) !== null) {
+                    // Add text before match
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
                     }
-                });
+
+                    // Add highlighted match
+                    const highlight = document.createElement('span');
+                    highlight.className = 'highlight';
+                    highlight.textContent = match[0];
+                    fragment.appendChild(highlight);
+                    highlightedElements.push(highlight);
+
+                    lastIndex = regex.lastIndex;
+                }
+
+                // Add remaining text
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+                }
 
                 parent.replaceChild(fragment, textNode);
             });
