@@ -503,8 +503,8 @@
         <!-- Search Bar -->
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="🔍 Search topics, speakers, or time..." />
-            <label style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="searchAllCheckbox" />
+            <label style="display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap;">
+                <input type="checkbox" id="searchAllCheckbox" style="cursor:pointer; margin:0;" />
                 <span style="font-size:0.9em; color:#666;">All rooms</span>
             </label>
             <button class="clear-btn" onclick="clearSearch()">Clear</button>
@@ -1030,18 +1030,19 @@
                             el.style.cursor = 'pointer';
                             const snippetHtml = `${escapeHtml(m.snippetParts.prefix)}<span class="highlight">${escapeHtml(m.snippetParts.matchTxt)}</span>${escapeHtml(m.snippetParts.suffix)}`;
                             el.innerHTML = `<strong>Room ${m.room}</strong> — <em>${m.time}</em>: ${snippetHtml}`;
-                            el.addEventListener('click', () => {
+                            el.addEventListener('click', async () => {
                                 // open the relevant room view
-                                const tabEl = document.querySelector(`.tab[onclick*="room${m.room}"]`);
-                                if (tabEl) showTab({ target: tabEl }, `room${m.room}`);
-                                // scroll to the highlighted element in that view if present
-                                setTimeout(() => {
-                                    const view = document.getElementById(`room${m.room}View`);
-                                    if (view) {
-                                        const firstHl = view.querySelector('.highlight');
-                                        if (firstHl) firstHl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    }
-                                }, 300);
+                                const roomId = `room${m.room}`;
+                                const tabEl = document.querySelector(`.tab[data-tab="${roomId}"]`);
+                                if (tabEl) {
+                                    showTab({ target: tabEl }, roomId);
+                                    // Wait for room content to load
+                                    await loadRoomContent(m.room);
+                                    // Scroll to the specific session using time
+                                    setTimeout(() => {
+                                        scrollToSession(m.room, m.time);
+                                    }, 300);
+                                }
                             });
                             resultsEl.appendChild(el);
                         });
