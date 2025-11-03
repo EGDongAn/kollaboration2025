@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 KPCS & KSFM Joint Academic Conference</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .main-header {
+            background: white;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .main-header h1 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .main-header .date {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-bar .clear-btn {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        .search-bar .clear-btn:hover {
+            background: #e0e0e0;
+        }
+
+        /* Tabs */
+        .tabs {
+            background: white;
+            display: flex;
+            overflow-x: auto;
+            border-bottom: 2px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            background: #f9f9f9;
+        }
+
+        .tab.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .tab .badge {
+            display: inline-block;
+            background: #ffd54f;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* View Toggle */
+        .view-toggle {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .view-toggle button {
+            padding: 10px 30px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-toggle button:hover {
+            background: #f0f0ff;
+        }
+
+        .view-toggle button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Content Area */
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .view-content {
+            display: none;
+        }
+
+        .view-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Timeline View */
+        .timeline-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        .timeline-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .timeline-table th:first-child {
+            width: 100px;
+        }
+
+        .timeline-table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 10px;
+            vertical-align: top;
+        }
+
+        .timeline-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .timeline-table .time-cell {
+            font-weight: 600;
+            color: #667eea;
+            text-align: center;
+            background: #f5f5ff;
+        }
+
+        .timeline-table .session-cell {
+            min-height: 60px;
+        }
+
+        .timeline-table .session-cell.break {
+            background: #fff3e0;
+            font-style: italic;
+            color: #f57c00;
+        }
+
+        .timeline-table .session-cell.symposium {
+            background: #e0f2f1;
+            font-weight: 600;
+            color: #00897b;
+        }
+
+        .session-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .session-speaker {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        /* Detailed View */
+        .room-details {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .room-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .room-header h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .room-header .venue {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .session-block {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .session-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .session-header h3 {
+            font-size: 1.3em;
+            margin-bottom: 5px;
+        }
+
+        .session-subtitle {
+            font-size: 1em;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        .session-chair {
+            font-size: 0.9em;
+            margin-top: 8px;
+            opacity: 0.85;
+        }
+
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .schedule-item.break {
+            border-left-color: #ffa726;
+            background: #fff3e0;
+        }
+
+        .schedule-item.symposium {
+            border-left-color: #26a69a;
+            background: #e0f2f1;
+        }
+
+        .item-left {
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        .item-right {
+            min-width: 200px;
+            text-align: right;
+        }
+
+        .time {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.05em;
+            margin-bottom: 5px;
+        }
+
+        .topic {
+            font-size: 1em;
+            margin-bottom: 5px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .speaker-name {
+            font-weight: 600;
+            color: #764ba2;
+            display: block;
+        }
+
+        .affiliation {
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                padding: 12px 15px;
+                font-size: 0.9em;
+            }
+
+            .timeline-table {
+                font-size: 0.75em;
+            }
+
+            .view-toggle {
+                flex-direction: column;
+            }
+
+            .view-toggle button {
+                width: 100%;
+            }
+
+            .schedule-item {
+                flex-direction: column;
+            }
+
+            .item-right {
+                margin-top: 10px;
+                text-align: left;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+            margin-top: 30px;
+        }
+
+        .highlight {
+            background: yellow;
+            padding: 2px 0;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-header">
+        <h1>2025 KPCS & KSFM Joint Academic Conference</h1>
+        <p class="date">November 30, 2025</p>
+    </div>
+
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Search topics, speakers, or time..." />
+            <button class="clear-btn" onclick="clearSearch()">Clear</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab(event, 'all')">📅 All Rooms</button>
+            <button class="tab" onclick="showTab(event, 'roomA')">Room A</button>
+            <button class="tab" onclick="showTab(event, 'roomB')">Room B</button>
+            <button class="tab" onclick="showTab(event, 'roomC')">Room C <span class="badge">HYBRID</span></button>
+            <button class="tab" onclick="showTab(event, 'roomD')">Room D</button>
+            <button class="tab" onclick="showTab(event, 'roomE')">Room E</button>
+            <button class="tab" onclick="showTab(event, 'roomF')">Room F</button>
+        </div>
+
+        <!-- View Toggle (only for All Rooms) -->
+        <div class="view-toggle" id="viewToggle" style="display: flex;">
+            <button class="active" onclick="switchView(event, 'timeline')">🕐 Timeline View</button>
+            <button onclick="switchView(event, 'detailed')">📋 Detailed View</button>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- All Rooms Timeline View -->
+            <div id="timelineView" class="view-content active">
+                <h2 style="margin-bottom: 20px; color: #667eea;">Conference Schedule Overview</h2>
+                <div style="overflow-x: auto;">
+                    <table class="timeline-table" id="timelineTable">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Room A<br>E4</th>
+                                <th>Room B<br>Skinbooster</th>
+                                <th>Room C<br>E2 (Hybrid)</th>
+                                <th>Room D<br>Primary Care</th>
+                                <th>Room E<br>Laser</th>
+                                <th>Room F<br>E7</th>
+                            </tr>
+                        </thead>
+                        <tbody id="timelineBody">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- All Rooms Detailed View -->
+            <div id="detailedView" class="view-content">
+                <h2 style="margin-bottom: 20px; color: #667eea;">Detailed Schedule</h2>
+                <div id="detailedContent">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Individual Room Views -->
+            <div id="roomAView" class="view-content"></div>
+            <div id="roomBView" class="view-content"></div>
+            <div id="roomCView" class="view-content"></div>
+            <div id="roomDView" class="view-content"></div>
+            <div id="roomEView" class="view-content"></div>
+            <div id="roomFView" class="view-content"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 KPCS & KSFM Joint Academic Conference</p>
+    </footer>
+
+    <script>
+        // Room data
+        const rooms = {
+            A: { name: 'Room A', venue: 'E4 Room', file: 'roomA_en.html', color: '#667eea' },
+            B: { name: 'Room B - Skinbooster & Thread', venue: 'Room B', file: 'roomB_en.html', color: '#11998e' },
+            C: { name: 'Room C', venue: 'E2 Room (Hybrid)', file: 'roomC_en.html', color: '#f5576c', badge: 'HYBRID' },
+            D: { name: 'Room D - Primary Care', venue: 'E1 & Bridal Suite', file: 'roomD_en.html', color: '#4facfe' },
+            E: { name: 'Room E - Laser Technology', venue: 'E6 Room (LASER)', file: 'roomE_en.html', color: '#fa709a' },
+            F: { name: 'Room F - Advanced Topics', venue: 'E7 Room', file: 'roomF_en.html', color: '#6dd5ed' }
+        };
+
+        let currentTab = 'all';
+        let currentView = 'timeline';
+
+        // Tab switching
+        function showTab(e, tab) {
+            currentTab = tab;
+
+            // Update tab UI
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // Show/hide view toggle
+            const viewToggle = document.getElementById('viewToggle');
+            if (tab === 'all') {
+                viewToggle.style.display = 'flex';
+                if (currentView === 'timeline') {
+                    showView('timelineView');
+                } else {
+                    showView('detailedView');
+                }
+            } else {
+                viewToggle.style.display = 'none';
+                showView(tab + 'View');
+                loadRoomContent(tab.replace('room', ''));
+            }
+        }
+
+        // View switching
+        function switchView(e, view) {
+            currentView = view;
+
+            // Update button UI
+            document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+
+            if (view === 'timeline') {
+                showView('timelineView');
+            } else {
+                showView('detailedView');
+                loadAllRoomsDetailed();
+            }
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // Load room content
+        async function loadRoomContent(room) {
+            const viewId = `room${room}View`;
+            const viewElement = document.getElementById(viewId);
+
+            if (viewElement.innerHTML) return; // Already loaded
+
+            // Show loading state
+            viewElement.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #999;">Loading...</div>';
+
+            try {
+                const response = await fetch(rooms[room].file);
+                if (!response.ok) throw new Error('Failed to fetch');
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const content = doc.querySelector('.container');
+
+                if (content) {
+                    viewElement.innerHTML = content.innerHTML;
+                } else {
+                    throw new Error('Content not found');
+                }
+            } catch (error) {
+                console.error('Error loading room content:', error);
+                viewElement.innerHTML = '<div class="no-results">⚠️ Failed to load content. Please refresh the page.</div>';
+            }
+        }
+
+        // Load all rooms for detailed view
+        async function loadAllRoomsDetailed() {
+            const container = document.getElementById('detailedContent');
+            if (container.innerHTML) return;
+
+            // Show loading state
+            container.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #999;">Loading all rooms...</div>';
+
+            try {
+                let html = '';
+                for (const [key, room] of Object.entries(rooms)) {
+                    html += `<div style="margin-bottom: 40px;">
+                        <h3 style="color: ${room.color}; padding: 20px; background: #f9f9f9; border-radius: 8px; margin-bottom: 20px;">
+                            ${room.name} - ${room.venue}
+                            ${room.badge ? `<span class="badge">${room.badge}</span>` : ''}
+                        </h3>
+                        <div id="detailed${key}"></div>
+                    </div>`;
+                }
+                container.innerHTML = html;
+
+                // Load all rooms in parallel for better performance
+                await Promise.all(
+                    Object.keys(rooms).map(key => loadRoomContentToElement(key, `detailed${key}`))
+                );
+            } catch (error) {
+                console.error('Error loading detailed view:', error);
+                container.innerHTML = '<div class="no-results">⚠️ Failed to load detailed view. Please refresh the page.</div>';
+            }
+        }
+
+        async function loadRoomContentToElement(room, elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            try {
+                const response = await fetch(rooms[room].file);
+                if (!response.ok) throw new Error('Failed to fetch');
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const sessions = doc.querySelectorAll('.session-block');
+
+                if (sessions.length > 0) {
+                    sessions.forEach(session => element.appendChild(session.cloneNode(true)));
+                } else {
+                    throw new Error('No session blocks found');
+                }
+            } catch (error) {
+                console.error(`Error loading ${room}:`, error);
+                element.innerHTML = '<div class="no-results">⚠️ Failed to load content</div>';
+            }
+        }
+
+        // Generate timeline table
+        function generateTimeline() {
+            const times = [
+                '08:30 - 08:50', '08:50 - 09:00', '09:00 - 09:50', '09:50 - 10:15',
+                '10:15 - 11:15', '11:15 - 11:25', '11:25 - 12:25', '12:25 - 13:20',
+                '13:20 - 14:20', '14:20 - 14:35', '14:35 - 15:50', '15:35 - 15:50',
+                '15:50 - 16:55', '16:50 - 16:55'
+            ];
+
+            // Simplified timeline data
+            const schedule = {
+                '08:30 - 08:50': { all: 'Registration' },
+                '08:50 - 09:00': { all: 'Opening Remark' },
+                '09:00 - 10:00': {
+                    A: 'Session I: Filler Procedures',
+                    B: 'Session I: Thread Lifting Journey',
+                    C: 'Session I: Beauty Knowledge',
+                    D: 'Session I: Primary Care Fundamentals',
+                    E: 'Session I: Aesthetic Energy Core',
+                    F: 'Facial Nerve Anesthesia & Melasma'
+                },
+                '10:00 - 10:40': { all: 'Coffee Break' },
+                '10:40 - 12:00': {
+                    A: 'Session II: Face Perfected by Filler',
+                    B: 'Session II: Same Materials, New Techniques',
+                    C: 'Session II: Transformation Results',
+                    D: 'Session II: Expanding Primary Care I',
+                    E: 'Session II: Light, Heat, Energy',
+                    F: 'Pigmentation Treatment Strategy'
+                },
+                '12:00 - 13:20': { all: 'Lunch Symposium' },
+                '13:20 - 14:20': {
+                    A: 'Session IV: Collagen & Botox',
+                    B: 'Session IV: Youth-Focused Midface',
+                    C: 'Session IV: Brand New Procedures',
+                    D: 'Session III: Pain Management',
+                    E: 'Session IV: Energy Devices Innovation',
+                    F: 'Thread Lifting & Botulinum Toxin'
+                },
+                '14:20 - 15:00': {
+                    A: 'Coffee Break',
+                    B: 'Coffee Break',
+                    C: 'Session V: Back to Basics',
+                    D: 'Coffee Break',
+                    E: 'Session V: Aesthetic Energy Frontier',
+                    F: 'Skin FAQs & Practice'
+                },
+                '15:00 - 16:50': {
+                    A: 'Sessions V & VI',
+                    B: 'Sessions V & VI',
+                    C: 'Session VI: New Trends',
+                    D: 'Session IV: Primary Care II',
+                    E: 'Session VI: Skin & Energy Principles',
+                    F: 'Skin Booster & Filler Safety'
+                },
+                '16:50 - 16:55': { all: 'Ending Remark' }
+            };
+
+            const tbody = document.getElementById('timelineBody');
+            tbody.innerHTML = '';
+
+            Object.entries(schedule).forEach(([time, content]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="time-cell">${time}</td>`;
+
+                if (content.all) {
+                    const isBreak = content.all.includes('Coffee') || content.all.includes('Registration');
+                    const isSymposium = content.all.includes('Symposium');
+                    row.innerHTML += `<td colspan="6" class="session-cell ${isBreak ? 'break' : ''} ${isSymposium ? 'symposium' : ''}" style="text-align: center;">${content.all}</td>`;
+                } else {
+                    ['A', 'B', 'C', 'D', 'E', 'F'].forEach(room => {
+                        const sessionText = content[room] || '-';
+                        row.innerHTML += `<td class="session-cell">${sessionText}</td>`;
+                    });
+                }
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Search functionality
+        let highlightedElements = [];
+
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.trim().toLowerCase();
+
+            clearHighlights();
+
+            if (!searchTerm || searchTerm.length < 2) {
+                return;
+            }
+
+            // Search in current view
+            const activeView = document.querySelector('.view-content.active');
+            if (!activeView) return;
+
+            const content = activeView.textContent.toLowerCase();
+
+            if (content.includes(searchTerm)) {
+                highlightText(activeView, searchTerm);
+            }
+        });
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            clearHighlights();
+        }
+
+        function highlightText(element, searchTerm) {
+            const walker = document.createTreeWalker(
+                element,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const nodesToReplace = [];
+            let node;
+
+            while (node = walker.nextNode()) {
+                if (node.nodeValue && node.nodeValue.toLowerCase().includes(searchTerm)) {
+                    nodesToReplace.push(node);
+                }
+            }
+
+            nodesToReplace.forEach(textNode => {
+                const parent = textNode.parentNode;
+                if (!parent || parent.classList?.contains('highlight')) return;
+
+                const text = textNode.nodeValue;
+                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                const parts = text.split(regex);
+
+                const fragment = document.createDocumentFragment();
+                parts.forEach(part => {
+                    if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                        const highlight = document.createElement('span');
+                        highlight.className = 'highlight';
+                        highlight.textContent = part;
+                        fragment.appendChild(highlight);
+                        highlightedElements.push(highlight);
+                    } else if (part) {
+                        fragment.appendChild(document.createTextNode(part));
+                    }
+                });
+
+                parent.replaceChild(fragment, textNode);
+            });
+        }
+
+        function clearHighlights() {
+            highlightedElements.forEach(el => {
+                if (el.parentNode) {
+                    const text = document.createTextNode(el.textContent);
+                    el.parentNode.replaceChild(text, el);
+                }
+            });
+            highlightedElements = [];
+
+            // Fallback: clean up any remaining highlight elements
+            document.querySelectorAll('.highlight').forEach(el => {
+                if (el.parentNode) {
+                    const text = document.createTextNode(el.textContent);
+                    el.parentNode.replaceChild(text, el);
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            generateTimeline();
+        });
+    </script>
+</body>
+</html>
