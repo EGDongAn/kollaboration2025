@@ -1208,7 +1208,17 @@
                     const row = document.createElement('div');
                     row.style.padding = '6px 0';
                     const roomId = `room${w.room}Timeline`;
-                    row.innerHTML = `<a href="#${roomId}" onclick="scrollToRoom('${w.room}')"><strong>Room ${w.room}</strong></a>: ${escapeHtml(w.timeRange)} — ${escapeHtml(w.message)}`;
+                    
+                    const link = document.createElement('a');
+                    link.href = `#${roomId}`;
+                    link.innerHTML = `<strong>Room ${w.room}</strong>`;
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        scrollToRoom(w.room);
+                    });
+                    
+                    row.appendChild(link);
+                    row.appendChild(document.createTextNode(`: ${w.timeRange} — ${w.message}`));
                     list.appendChild(row);
                 });
 
@@ -1226,10 +1236,42 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // generateTimeline is async — call and then render any warnings
+            // Setup event listeners first
+            setupEventListeners();
+
+            // Then initialize features
             generateTimeline().then(() => renderTimelineWarnings());
             initSearch();
         });
+
+        function setupEventListeners() {
+            // Setup tab buttons
+            document.querySelectorAll('.tab').forEach(btn => {
+                const tabId = btn.getAttribute('data-tab');
+                if (tabId) {
+                    btn.addEventListener('click', e => showTab(e, tabId));
+                }
+            });
+
+            // Setup view toggle buttons
+            document.querySelectorAll('.view-toggle button').forEach(btn => {
+                const view = btn.getAttribute('data-view');
+                if (view === 'timeline') {
+                    btn.addEventListener('click', e => switchView(e, 'timeline'));
+                } else if (view === 'detailed') {
+                    btn.addEventListener('click', openDetailedView);
+                }
+            });
+
+            // Setup warning banner dismiss button
+            const dismiss = document.getElementById('dismissTimelineWarnings');
+            if (dismiss) {
+                dismiss.addEventListener('click', () => {
+                    const banner = document.getElementById('timelineWarningBanner');
+                    if (banner) banner.style.display = 'none';
+                });
+            }
+        }
     </script>
 </body>
 </html>
