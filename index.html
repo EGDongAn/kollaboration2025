@@ -695,26 +695,26 @@
             }));
 
             // Build a sorted list of unique time ranges across all rooms
+
+            // Use session start times (e.g. '08:30', '08:50', '09:00', ...) as the left timeline
             const timeSet = new Set();
-            Object.values(roomSessions).flat().forEach(s => timeSet.add(s.timeRange));
+            // normalize sessions to include startTime
+            Object.values(roomSessions).forEach(list => {
+                list.forEach(s => {
+                    const start = s.timeRange.split('-')[0].trim();
+                    s.startTime = start;
+                    timeSet.add(start);
+                });
+            });
             const times = Array.from(timeSet);
 
             function toMinutes(t) {
-                // t is like '08:30 - 08:50'
-                const parts = t.split('-').map(p => p.trim());
-                const [h, m] = parts[0].split(':').map(Number);
+                // t is like '08:30'
+                const [h, m] = t.split(':').map(Number);
                 return h * 60 + m;
             }
 
-            times.sort((a, b) => {
-                const sa = toMinutes(a);
-                const sb = toMinutes(b);
-                if (sa !== sb) return sa - sb;
-                // tie-breaker by end time
-                const ea = a.split('-').map(p => p.trim())[1].split(':').map(Number);
-                const eb = b.split('-').map(p => p.trim())[1].split(':').map(Number);
-                return (ea[0]*60 + ea[1]) - (eb[0]*60 + eb[1]);
-            });
+            times.sort((a, b) => toMinutes(a) - toMinutes(b));
 
             const tbody = document.getElementById('timelineBody');
             tbody.innerHTML = '';
@@ -724,7 +724,7 @@
                 row.innerHTML = `<td class="time-cell">${time}</td>`;
 
                 roomKeys.forEach(key => {
-                    const session = (roomSessions[key] || []).find(s => s.timeRange === time);
+                    const session = (roomSessions[key] || []).find(s => s.startTime === time);
                     if (session) {
                         const cls = session.isBreak ? 'break' : (session.isSymposium ? 'symposium' : '');
                         row.innerHTML += `<td class="session-cell ${cls}">${session.topic}</td>`;
