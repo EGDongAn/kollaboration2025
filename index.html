@@ -135,6 +135,29 @@
             margin-left: 5px;
         }
 
+        /* Timeline Cells */
+        .session-cell {
+            border: 1px solid #ddd;
+            padding: 8px;
+            position: relative;
+            vertical-align: middle;
+        }
+
+        .session-cell a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        .session-cell:hover {
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+
         /* View Toggle */
         .view-toggle {
             background: white;
@@ -793,10 +816,11 @@
                         // mark active until end minute
                         activeUntil[key] = session.endMin;
 
+                        const roomId = `room${key}`;
                         if (spanCount > 1) {
-                            row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}">${session.topic}</td>`;
+                            row.innerHTML += `<td class="session-cell ${cls}" rowspan="${spanCount}"><a href="#" onclick="switchView(event, '${roomId}'); loadRoomContent('${key}')">${session.topic}</a></td>`;
                         } else {
-                            row.innerHTML += `<td class="session-cell ${cls}">${session.topic}</td>`;
+                            row.innerHTML += `<td class="session-cell ${cls}"><a href="#" onclick="switchView(event, '${roomId}'); loadRoomContent('${key}')">${session.topic}</a></td>`;
                         }
                     } else {
                         row.innerHTML += `<td class="session-cell">-</td>`;
@@ -879,13 +903,15 @@
                                 const topicEl = item.querySelector('.topic');
                                 if (!timeEl) return;
                                 const fullText = item.textContent.trim();
-                                const lower = fullText.toLowerCase();
-                                const idx = lower.indexOf(term.toLowerCase());
+                                const lowerText = fullText.toLowerCase();
+                                const lowerTerm = term.toLowerCase();
+                                const idx = lowerText.indexOf(lowerTerm);
                                 if (idx !== -1) {
                                     // build a snippet around the match
                                     const start = Math.max(0, idx - Math.floor(maxSnippetLen / 2));
                                     const end = Math.min(fullText.length, idx + term.length + Math.floor(maxSnippetLen / 2));
                                     let prefix = fullText.substring(start, idx);
+                                    // preserve original case of matched text
                                     let matchTxt = fullText.substring(idx, idx + term.length);
                                     let suffix = fullText.substring(idx + term.length, end);
                                     if (start > 0) prefix = '...' + prefix;
@@ -1000,7 +1026,7 @@
             let node;
 
             while (node = walker.nextNode()) {
-                if (node.nodeValue && node.nodeValue.toLowerCase().includes(searchTerm)) {
+                if (node.nodeValue && node.nodeValue.toLowerCase().includes(searchTerm.toLowerCase())) {
                     nodesToReplace.push(node);
                 }
             }
@@ -1010,7 +1036,7 @@
                 if (!parent || parent.classList?.contains('highlight')) return;
 
                 const text = textNode.nodeValue;
-                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
                 const parts = text.split(regex);
 
                 const fragment = document.createDocumentFragment();
