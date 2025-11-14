@@ -85,12 +85,51 @@ Your site will be live at: `https://your-project.pages.dev`
 
 Your site will be live at: `https://your-username.github.io/repository-name`
 
+## 🔄 Auto-Sync System
+
+This repository automatically syncs schedule data from kollaboration.net every day at **5:00 AM KST**.
+
+### How it works
+
+1. **GitHub Actions** runs daily at 5:00 AM KST
+2. Downloads latest HTML from 6 room pages (A-F)
+3. Extracts schedule data and updates local files
+4. Automatically commits and pushes changes if detected
+
+### Source URLs
+
+Schedule data is sourced from:
+- https://www.kollaboration.net/html/?pmode=roomA
+- https://www.kollaboration.net/html/?pmode=roomB
+- https://www.kollaboration.net/html/?pmode=roomC
+- https://www.kollaboration.net/html/?pmode=roomD
+- https://www.kollaboration.net/html/?pmode=roomE
+- https://www.kollaboration.net/html/?pmode=roomF
+
+### Manual Sync
+
+You can trigger a manual sync:
+
+1. Go to **Actions** tab in GitHub
+2. Select **Sync Schedule Data** workflow
+3. Click **Run workflow**
+
+### Local Sync
+
+```bash
+# Install dependencies
+npm install
+
+# Run sync script manually
+npm run sync
+```
+
 ## 🛠️ Technical Details
 
 - **Pure HTML/CSS/JavaScript**: No build process required
 - **Dynamic Content Loading**: Uses Fetch API for room content
 - **Client-Side Rendering**: All processing happens in the browser
-- **No Dependencies**: Works without any external libraries
+- **Auto-Sync**: Node.js script with jsdom for HTML extraction
 
 ## 📱 Browser Support
 

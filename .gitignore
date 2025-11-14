@@ -40,3 +40,10 @@ yarn-error.log*
 
 # Local server files
 *.sh
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Temporary sync files
+room*_temp.html

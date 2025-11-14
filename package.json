@@ -1,0 +1,23 @@
+{
+  "name": "kollaboration-2025-schedule",
+  "version": "1.0.0",
+  "description": "2025 KPCS & KSFM Joint Academic Conference Schedule",
+  "scripts": {
+    "sync": "node .github/scripts/extract-schedule.js"
+  },
+  "dependencies": {
+    "jsdom": "^24.0.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EGDongAn/kollaboration2025.git"
+  },
+  "keywords": [
+    "conference",
+    "schedule",
+    "medical"
+  ],
+  "author": "",
+  "license": "ISC"
+}

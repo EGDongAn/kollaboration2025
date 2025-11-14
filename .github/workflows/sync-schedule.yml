@@ -1,0 +1,68 @@
+name: Sync Schedule Data
+
+on:
+  schedule:
+    # Runs at 5:00 AM KST (20:00 UTC previous day) every day
+    - cron: '0 20 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download updated schedule data
+        run: |
+          echo "Downloading schedule data from kollaboration.net..."
+
+          # Download each room's HTML
+          curl -s "https://www.kollaboration.net/html/?pmode=roomA" -o roomA_temp.html
+          curl -s "https://www.kollaboration.net/html/?pmode=roomB" -o roomB_temp.html
+          curl -s "https://www.kollaboration.net/html/?pmode=roomC" -o roomC_temp.html
+          curl -s "https://www.kollaboration.net/html/?pmode=roomD" -o roomD_temp.html
+          curl -s "https://www.kollaboration.net/html/?pmode=roomE" -o roomE_temp.html
+          curl -s "https://www.kollaboration.net/html/?pmode=roomF" -o roomF_temp.html
+
+          echo "Download completed"
+
+      - name: Extract and update room files
+        run: node .github/scripts/extract-schedule.js
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet roomA_en.html roomB_en.html roomC_en.html roomD_en.html roomE_en.html roomF_en.html; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push if changed
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add roomA_en.html roomB_en.html roomC_en.html roomD_en.html roomE_en.html roomF_en.html
+          git commit -m "chore: Auto-sync schedule data from kollaboration.net
+
+Updated at: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S %Z')
+
+🤖 Automated update via GitHub Actions"
+          git push
+
+      - name: Clean up temporary files
+        if: always()
+        run: rm -f room*_temp.html
