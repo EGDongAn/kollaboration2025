@@ -98,13 +98,16 @@ This repository automatically syncs schedule data from kollaboration.net every d
 
 ### Source URLs
 
-Schedule data is sourced from:
-- https://www.kollaboration.net/html/?pmode=roomA
-- https://www.kollaboration.net/html/?pmode=roomB
-- https://www.kollaboration.net/html/?pmode=roomC
-- https://www.kollaboration.net/html/?pmode=roomD
-- https://www.kollaboration.net/html/?pmode=roomE
-- https://www.kollaboration.net/html/?pmode=roomF
+Schedule data is sourced from kollaboration.net with the following mapping:
+
+| Source URL | Content | Target File |
+|------------|---------|-------------|
+| [?pmode=roomA](https://www.kollaboration.net/html/?pmode=roomA) | Filler | roomA_en.html |
+| [?pmode=roomC](https://www.kollaboration.net/html/?pmode=roomC) | Skinbooster & Thread | roomB_en.html |
+| [?pmode=roomD](https://www.kollaboration.net/html/?pmode=roomD) | Hybrid | roomC_en.html |
+| [?pmode=roomB](https://www.kollaboration.net/html/?pmode=roomB) | Primary Care | roomD_en.html |
+| [?pmode=roomE](https://www.kollaboration.net/html/?pmode=roomE) | Laser | roomE_en.html |
+| [?pmode=roomF](https://www.kollaboration.net/html/?pmode=roomF) | Academy | roomF_en.html |
 
 ### Manual Sync
 
