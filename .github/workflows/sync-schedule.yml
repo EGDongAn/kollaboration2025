@@ -62,11 +62,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add roomA_en.html roomB_en.html roomC_en.html roomD_en.html roomE_en.html roomF_en.html
-          git commit -m "chore: Auto-sync schedule data from kollaboration.net
-
-Updated at: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S %Z')
-
-🤖 Automated update via GitHub Actions"
+          git commit -m "chore: Auto-sync schedule data from kollaboration.net" -m "Updated at: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S %Z')" -m "Automated update via GitHub Actions"
           git push
 
       - name: Clean up temporary files

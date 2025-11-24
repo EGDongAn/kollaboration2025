@@ -7,11 +7,11 @@ English agenda website for the 2025 KPCS & KSFM Joint Academic Conference held o
 This website provides comprehensive English agendas for all 6 conference rooms:
 
 - **Room A** (E4 Room) - Filler & Procedures
-- **Room B** - Skinbooster & Thread
-- **Room C** (E2 Room) - Hybrid Session
-- **Room D** (E1 & Bridal Suite) - Primary Care
-- **Room E** (E6 Room) - Laser Technology
-- **Room F** (E7 Room) - Advanced Topics
+- **Room B** (E1 Room) - Skinbooster & Thread
+- **Room C** (E6 Room) - Hybrid Session
+- **Room D** (E2+3 Room) - Primary Care
+- **Room E** (E7 Room) - Laser Technology
+- **Room F** (E8 Room) - Advanced Topics
 
 ## ✨ Features
 
