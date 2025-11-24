@@ -7,9 +7,9 @@ English agenda website for the 2025 KPCS & KSFM Joint Academic Conference held o
 This website provides comprehensive English agendas for all 6 conference rooms:
 
 - **Room A** (E4 Room) - Filler & Procedures
-- **Room B** (E1 Room) - Skinbooster & Thread
-- **Room C** (E6 Room) - Hybrid Session
-- **Room D** (E2+3 Room) - Primary Care
+- **Room B** (E2+3 Room) - Primary Care
+- **Room C** (E1 Room) - Skinbooster & Thread
+- **Room D** (E6 Room) - Hybrid Session
 - **Room E** (E7 Room) - Laser Technology
 - **Room F** (E8 Room) - Advanced Topics
 
@@ -98,14 +98,14 @@ This repository automatically syncs schedule data from kollaboration.net every d
 
 ### Source URLs
 
-Schedule data is sourced from kollaboration.net with the following mapping:
+Schedule data is sourced from kollaboration.net with direct 1:1 mapping:
 
 | Source URL | Content | Target File |
 |------------|---------|-------------|
 | [?pmode=roomA](https://www.kollaboration.net/html/?pmode=roomA) | Filler | roomA_en.html |
-| [?pmode=roomC](https://www.kollaboration.net/html/?pmode=roomC) | Skinbooster & Thread | roomB_en.html |
-| [?pmode=roomD](https://www.kollaboration.net/html/?pmode=roomD) | Hybrid | roomC_en.html |
-| [?pmode=roomB](https://www.kollaboration.net/html/?pmode=roomB) | Primary Care | roomD_en.html |
+| [?pmode=roomB](https://www.kollaboration.net/html/?pmode=roomB) | Primary Care | roomB_en.html |
+| [?pmode=roomC](https://www.kollaboration.net/html/?pmode=roomC) | Skinbooster & Thread | roomC_en.html |
+| [?pmode=roomD](https://www.kollaboration.net/html/?pmode=roomD) | Hybrid | roomD_en.html |
 | [?pmode=roomE](https://www.kollaboration.net/html/?pmode=roomE) | Laser | roomE_en.html |
 | [?pmode=roomF](https://www.kollaboration.net/html/?pmode=roomF) | Academy | roomF_en.html |
 

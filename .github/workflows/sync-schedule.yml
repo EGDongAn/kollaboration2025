@@ -28,18 +28,12 @@ jobs:
         run: |
           echo "Downloading schedule data from kollaboration.net..."
 
-          # Download each room's HTML with correct mapping
-          # Source roomA (Filler) → Room A
+          # Download each room's HTML (direct 1:1 mapping)
           curl -s "https://www.kollaboration.net/html/?pmode=roomA" -o roomA_temp.html
-          # Source roomC (Skinbooster & Thread) → Room B
-          curl -s "https://www.kollaboration.net/html/?pmode=roomC" -o roomB_temp.html
-          # Source roomD (Hybrid) → Room C
-          curl -s "https://www.kollaboration.net/html/?pmode=roomD" -o roomC_temp.html
-          # Source roomB (Primary Care) → Room D
-          curl -s "https://www.kollaboration.net/html/?pmode=roomB" -o roomD_temp.html
-          # Source roomE (Laser) → Room E
+          curl -s "https://www.kollaboration.net/html/?pmode=roomB" -o roomB_temp.html
+          curl -s "https://www.kollaboration.net/html/?pmode=roomC" -o roomC_temp.html
+          curl -s "https://www.kollaboration.net/html/?pmode=roomD" -o roomD_temp.html
           curl -s "https://www.kollaboration.net/html/?pmode=roomE" -o roomE_temp.html
-          # Source roomF (Academy) → Room F
           curl -s "https://www.kollaboration.net/html/?pmode=roomF" -o roomF_temp.html
 
           echo "Download completed"
